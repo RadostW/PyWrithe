@@ -4,7 +4,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(name='PyWrithe',
-      version='0.0.2',
+      version='0.0.3',
       description='All Python package to compute writhe of closed curves with numpy or jax.numpy',
       url='https://github.com/RadostW/PyWrithe/',
       author='Radost Waszkiewicz',

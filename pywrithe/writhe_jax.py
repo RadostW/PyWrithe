@@ -41,10 +41,10 @@ def writhe_jax(curve):
     n3 = jnp.cross(r24,r23)
     n4 = jnp.cross(r23,r13)
 
-    n1norm = (jnp.sum(n1**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
-    n2norm = (jnp.sum(n2**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
-    n3norm = (jnp.sum(n3**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
-    n4norm = (jnp.sum(n4**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
+    n1norm = ((jnp.sum(n1**2,axis=-1) + jnp.finfo(n1.dtype).tiny)**(0.5))[:,:,jnp.newaxis]
+    n2norm = ((jnp.sum(n2**2,axis=-1) + jnp.finfo(n1.dtype).tiny)**(0.5))[:,:,jnp.newaxis]
+    n3norm = ((jnp.sum(n3**2,axis=-1) + jnp.finfo(n1.dtype).tiny)**(0.5))[:,:,jnp.newaxis]
+    n4norm = ((jnp.sum(n4**2,axis=-1) + jnp.finfo(n1.dtype).tiny)**(0.5))[:,:,jnp.newaxis]
 
     # deal with NaN cases by changing norms to 1 where needed
     # deal with gradient issues by adding tiny where needed
@@ -54,10 +54,11 @@ def writhe_jax(curve):
     n4n = n4 / jnp.where(n4norm !=0.0, n4norm, 1) + jnp.finfo(n4.dtype).tiny
 
     # products are over last axis
-    d1 = jnp.clip( jnp.sum(n1n*n2n,axis=-1) ,-1,1)
-    d2 = jnp.clip( jnp.sum(n2n*n3n,axis=-1) ,-1,1)
-    d3 = jnp.clip( jnp.sum(n3n*n4n,axis=-1) ,-1,1)
-    d4 = jnp.clip( jnp.sum(n4n*n1n,axis=-1) ,-1,1)
+    foo = 0.99999995#jnp.array(1.) - jnp.finfo(n1.dtype).tiny 
+    d1 = jnp.clip( jnp.sum(n1n*n2n,axis=-1) ,-foo,foo)
+    d2 = jnp.clip( jnp.sum(n2n*n3n,axis=-1) ,-foo,foo)
+    d3 = jnp.clip( jnp.sum(n3n*n4n,axis=-1) ,-foo,foo)
+    d4 = jnp.clip( jnp.sum(n4n*n1n,axis=-1) ,-foo,foo)
 
     a1 = jnp.arcsin(d1)
     a2 = jnp.arcsin(d2)
@@ -75,6 +76,3 @@ def writhe_jax(curve):
     #print(omega_masked)
 
     return (1.0 / (4.0 * ma.pi)) * jnp.sum( omega_masked )
-
-
-
