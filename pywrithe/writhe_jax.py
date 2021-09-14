@@ -46,10 +46,12 @@ def writhe_jax(curve):
     n3norm = (jnp.sum(n3**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
     n4norm = (jnp.sum(n4**2,axis=-1)**(0.5))[:,:,jnp.newaxis]
 
-    n1n = jnp.where(n1norm !=0.0, n1 / n1norm, n1)
-    n2n = jnp.where(n2norm !=0.0, n2 / n2norm, n2)
-    n3n = jnp.where(n3norm !=0.0, n3 / n3norm, n3)
-    n4n = jnp.where(n4norm !=0.0, n4 / n4norm, n4)
+    # deal with NaN cases by changing norms to 1 where needed
+    # deal with gradient issues by adding tiny where needed
+    n1n = n1 / jnp.where(n1norm !=0.0, n1norm, 1) + jnp.finfo(n1.dtype).tiny
+    n2n = n2 / jnp.where(n2norm !=0.0, n2norm, 1) + jnp.finfo(n2.dtype).tiny
+    n3n = n3 / jnp.where(n3norm !=0.0, n3norm, 1) + jnp.finfo(n3.dtype).tiny
+    n4n = n4 / jnp.where(n4norm !=0.0, n4norm, 1) + jnp.finfo(n4.dtype).tiny
 
     # products are over last axis
     d1 = jnp.clip( jnp.sum(n1n*n2n,axis=-1) ,-1,1)
